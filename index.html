@@ -5,8 +5,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🦜 Papago</title>
     <style>
-        body { font-family: 'Apple SD Gothic Neo', sans-serif; background-color: #f0f2f5; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; position: relative; }
-        .container { width: 100%; max-width: 420px; background: #bac7d3; height: 100%; max-height: 750px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: flex; flex-direction: column; overflow: hidden; position: relative; }
+        /* 모바일 환경 주소창 대응을 위해 100vh 대신 100dvh 적용 */
+        body { 
+            font-family: 'Apple SD Gothic Neo', sans-serif; 
+            background-color: #f0f2f5; 
+            margin: 0; 
+            padding: 0; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100dvh; 
+            overflow: hidden; 
+            position: relative; 
+        }
+        
+        .container { 
+            width: 100%; 
+            max-width: 420px; 
+            background: #bac7d3; 
+            height: 100dvh; 
+            max-height: 750px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15); 
+            display: flex; 
+            flex-direction: column; 
+            overflow: hidden; 
+            position: relative; 
+        }
         
         /* 위장용 빠른 번역기 전환 버튼 스타일 */
         .fake-escape-btn {
@@ -42,7 +67,7 @@
 
         /* 채팅 화면 스타일 */
         #chat-screen { display: none; flex-direction: column; height: 100%; }
-        .chat-header { background-color: #9cb2c9; color: #222; padding: 16px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 17px; border-bottom: 1px solid rgba(0,0,0,0.05); }
+        .chat-header { background-color: #9cb2c9; color: #222; padding: 16px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 17px; border-bottom: 1px solid rgba(0,0,0,0.05); flex-shrink: 0; }
         .header-btn-group { display: flex; gap: 6px; align-items: center; }
         .logout-btn { background-color: #e06d6d; color: white; border: none; padding: 6px 10px; border-radius: 4px; font-size: 13px; cursor: pointer; }
         .logout-btn:hover { background-color: #cc5555; }
@@ -86,7 +111,8 @@
 
         .message-time { font-size: 10px; color: #4a5a6a; white-space: nowrap; margin-bottom: 2px; }
         
-        .chat-input-area { display: flex; padding: 10px; background: white; border-top: 1px solid #ddd; }
+        /* 입력창 영역이 밀려나거나 잘리지 않도록 flex-shrink 고정 */
+        .chat-input-area { display: flex; padding: 10px; background: white; border-top: 1px solid #ddd; flex-shrink: 0; }
         .chat-input-area input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 15px; outline: none; }
         .chat-input-area button { width: 70px; margin-left: 8px; padding: 10px; background-color: #ffeb33; color: #333; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
         .chat-input-area button:hover { background-color: #f7df1e; }
@@ -349,7 +375,6 @@
         }
     };
 
-    // 메시지를 화면에 렌더링하는 공통 함수
     function renderMessage(msgData) {
         const chatMessages = document.getElementById("chat-messages");
         const dateStr = msgData.dateStr || "";
@@ -392,14 +417,12 @@
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
-    // 기존 대화 불러오기 및 실시간 리스너 연동
     async function loadMessages() {
         const messagesRef = ref(db, 'messages');
         const chatMessages = document.getElementById("chat-messages");
         chatMessages.innerHTML = "";
         lastRenderedDateKey = "";
 
-        // 1. 로그인/진입 시점에 이미 데이터베이스에 저장된 모든 메시지 한 번에 불러오기
         try {
             const snapshot = await get(messagesRef);
             if (snapshot.exists()) {
@@ -411,13 +434,10 @@
             console.error("기존 메시지 불러오기 실패:", error);
         }
 
-        // 2. 이후 실시간으로 추가되는 메시지 수신 (중복 리스너 등록 방지)
         if (!isListenerInitialized) {
             isListenerInitialized = true;
             onChildAdded(messagesRef, (snapshot) => {
                 if (!currentUser) return;
-                // 전체 로드 이후 새로 추가되는 실시간 메시지 렌더링
-                // (중복 출력을 막기 위해 이미 렌더링된 이후 시점의 데이터만 반영)
                 renderMessage(snapshot.val());
             });
         }
