@@ -5,33 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🦜 Papago</title>
     <style>
-        /* 모바일 환경 주소창 대응을 위해 100vh 대신 100dvh 적용 */
-        body { 
-            font-family: 'Apple SD Gothic Neo', sans-serif; 
-            background-color: #f0f2f5; 
-            margin: 0; 
-            padding: 0; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            height: 100dvh; 
-            overflow: hidden; 
-            position: relative; 
-        }
-        
-        .container { 
-            width: 100%; 
-            max-width: 420px; 
-            background: #bac7d3; 
-            height: 100dvh; 
-            max-height: 750px; 
-            border-radius: 12px; 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15); 
-            display: flex; 
-            flex-direction: column; 
-            overflow: hidden; 
-            position: relative; 
-        }
+        body { font-family: 'Apple SD Gothic Neo', sans-serif; background-color: #f0f2f5; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; position: relative; }
+        .container { width: 100%; max-width: 420px; background: #bac7d3; height: 100vh; max-height: 750px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: flex; flex-direction: column; overflow: hidden; position: relative; }
         
         /* 위장용 빠른 번역기 전환 버튼 스타일 */
         .fake-escape-btn {
@@ -111,7 +86,6 @@
 
         .message-time { font-size: 10px; color: #4a5a6a; white-space: nowrap; margin-bottom: 2px; }
         
-        /* 입력창 영역이 밀려나거나 잘리지 않도록 flex-shrink 고정 */
         .chat-input-area { display: flex; padding: 10px; background: white; border-top: 1px solid #ddd; flex-shrink: 0; }
         .chat-input-area input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 15px; outline: none; }
         .chat-input-area button { width: 70px; margin-left: 8px; padding: 10px; background-color: #ffeb33; color: #333; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
@@ -236,6 +210,22 @@
     let currentUser = "";
     let lastRenderedDateKey = "";
     let isListenerInitialized = false;
+
+    // 브라우저별 실제 가용 뷰포트 높이를 강제로 계산하여 적용하는 함수
+    function setAppHeight() {
+        const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+        const container = document.querySelector('.container');
+        if (container) {
+            container.style.height = `${vh}px`;
+        }
+    }
+
+    window.addEventListener('resize', setAppHeight);
+    if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', setAppHeight);
+        window.visualViewport.addEventListener('scroll', setAppHeight);
+    }
+    setAppHeight();
 
     window.openTranslator = function() {
         document.getElementById("translator-screen").style.display = "flex";
@@ -364,6 +354,7 @@
             timeStr: timeString
         }).then(() => {
             inputField.value = "";
+            inputField.focus(); // 패드(태블릿) 키보드 유지용 포커스 고정
         }).catch((error) => {
             console.error("메시지 전송 실패:", error);
         });
@@ -375,6 +366,7 @@
         }
     };
 
+    // 메시지를 화면에 렌더링하는 공통 함수
     function renderMessage(msgData) {
         const chatMessages = document.getElementById("chat-messages");
         const dateStr = msgData.dateStr || "";
@@ -417,6 +409,7 @@
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
+    // 기존 대화 불러오기 및 실시간 리스너 연동
     async function loadMessages() {
         const messagesRef = ref(db, 'messages');
         const chatMessages = document.getElementById("chat-messages");
