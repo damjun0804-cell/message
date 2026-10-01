@@ -123,7 +123,7 @@
 
     let currentMode = 'login';
     let currentUser = "";
-    let lastRenderedDate = ""; // 날짜 구분선 관리를 위한 변수
+    let lastRenderedDate = ""; // 날짜 변경 감지를 위한 변수
 
     window.switchMode = function(mode) {
         currentMode = mode;
@@ -177,7 +177,7 @@
                 const userData = snapshot.val();
                 if (userData.password === passwordInput) {
                     currentUser = usernameInput;
-                    lastRenderedDate = ""; // 로그인 시 날짜 구분선 초기화
+                    lastRenderedDate = ""; // 로그인 시점마다 날짜 비교 기준 초기화
                     document.getElementById("auth-screen").style.display = "none";
                     document.getElementById("chat-screen").style.display = "flex";
                     document.getElementById("room-title").innerText = `${currentUser}님의 대화방`;
@@ -202,7 +202,7 @@
         document.getElementById("auth-screen").style.display = "flex";
     };
 
-    // 한국 표준시(KST) 전체 문자열 반환 (데이터베이스 저장용: "YYYY-MM-DD HH:mm")
+    // 한국 표준시(KST) 전체 문자열 반환 ("YYYY-MM-DD HH:mm")
     function getKSTTimestamp() {
         const now = new Date();
         const options = {
@@ -253,11 +253,10 @@
             const msgData = snapshot.val();
             const fullTimestamp = msgData.timestamp || ""; // 예: "2026-06-07 14:35"
             
-            // 날짜와 시간 분리
             const datePart = fullTimestamp.split(" ")[0]; // "2026-06-07"
             const timePart = fullTimestamp.split(" ")[1]; // "14:35"
 
-            // 1. 날짜가 바뀌었을 경우 구분선 추가
+            // 1. 이전 메시지와 날짜가 다를 때만 날짜 구분선 생성
             if (datePart && datePart !== lastRenderedDate) {
                 lastRenderedDate = datePart;
                 const dividerDiv = document.createElement("div");
@@ -266,7 +265,7 @@
                 chatMessages.appendChild(dividerDiv);
             }
 
-            // 2. 메시지 본문 렌더링 (닉네임과 시간:분만 표시)
+            // 2. 메시지 영역 렌더링 (닉네임과 시간:분만 표시)
             const wrapperDiv = document.createElement("div");
             const isSentByMe = msgData.sender === currentUser;
             wrapperDiv.className = `message-wrapper ${isSentByMe ? 'sent' : 'received'}`;
