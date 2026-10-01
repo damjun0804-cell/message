@@ -6,10 +6,10 @@
     <title>1:1 실시간 메신저</title>
     <style>
         body { font-family: 'Apple SD Gothic Neo', sans-serif; background-color: #f0f2f5; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
-        .container { width: 100%; max-width: 400px; background: white; height: 100%; max-height: 700px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); display: flex; flex-direction: column; overflow: hidden; }
+        .container { width: 100%; max-width: 420px; background: #bac7d3; height: 100%; max-height: 750px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: flex; flex-direction: column; overflow: hidden; }
         
         /* 인증 화면 스타일 */
-        #auth-screen { padding: 40px 20px; display: flex; flex-direction: column; justify-content: center; height: 100%; box-sizing: border-box; }
+        #auth-screen { background: white; padding: 40px 20px; display: flex; flex-direction: column; justify-content: center; height: 100%; box-sizing: border-box; }
         #auth-screen h2 { text-align: center; margin-bottom: 24px; color: #333; }
         .tab-menu { display: flex; margin-bottom: 20px; border-bottom: 2px solid #ddd; }
         .tab-btn { flex: 1; padding: 10px; background: none; border: none; font-size: 16px; font-weight: bold; cursor: pointer; color: #888; }
@@ -24,47 +24,54 @@
 
         /* 채팅 화면 스타일 */
         #chat-screen { display: none; flex-direction: column; height: 100%; }
-        .chat-header { background-color: #007bff; color: white; padding: 16px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 18px; }
-        .logout-btn { background-color: #ff4d4d; color: white; border: none; padding: 6px 10px; border-radius: 4px; font-size: 13px; cursor: pointer; }
-        .logout-btn:hover { background-color: #cc0000; }
+        .chat-header { background-color: #9cb2c9; color: #222; padding: 16px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 17px; border-bottom: 1px solid rgba(0,0,0,0.05); }
+        .logout-btn { background-color: #e06d6d; color: white; border: none; padding: 6px 10px; border-radius: 4px; font-size: 13px; cursor: pointer; }
+        .logout-btn:hover { background-color: #cc5555; }
         
-        .chat-messages { flex: 1; padding: 16px; overflow-y: auto; background-color: #f9f9f9; display: flex; flex-direction: column; gap: 12px; }
+        .chat-messages { flex: 1; padding: 16px; overflow-y: auto; background-color: #bac7d3; display: flex; flex-direction: column; gap: 8px; }
         
-        /* 날짜 구분선 스타일 */
-        .date-divider { display: flex; align-items: center; text-align: center; color: #888; font-size: 12px; margin: 16px 0 8px 0; width: 100%; }
-        .date-divider::before, .date-divider::after { content: ''; flex: 1; border-bottom: 1px solid #ddd; }
-        .date-divider span { padding: 0 10px; background-color: #f9f9f9; border-radius: 10px; }
+        /* 날짜 구분선 스타일 (이미지 참고) */
+        .date-divider { display: flex; justify-content: center; align-items: center; margin: 16px 0; width: 100%; }
+        .date-divider span { background-color: rgba(0, 0, 0, 0.15); color: white; font-size: 12px; padding: 6px 14px; border-radius: 20px; font-weight: 500; }
 
-        /* 메시지 컨테이너 (정렬 기준) */
-        .message-wrapper { display: flex; flex-direction: column; width: 100%; }
-        .message-wrapper.sent { align-items: flex-end; }     /* 본인: 우측 정렬 */
-        .message-wrapper.received { align-items: flex-start; } /* 타인: 좌측 정렬 */
+        /* 메시지 컨테이너 정렬 */
+        .message-row { display: flex; width: 100%; margin-bottom: 4px; }
+        .message-row.sent { justify-content: flex-end; }     /* 본인: 우측 */
+        .message-row.received { justify-content: flex-start; } /* 상대방: 좌측 */
 
-        .message-info { font-size: 11px; color: #666; margin-bottom: 4px; padding: 0 4px; display: flex; gap: 6px; }
-        
+        .message-content-group { display: flex; align-items: flex-end; max-width: 75%; gap: 6px; }
+        .message-row.sent .message-content-group { flex-direction: row-reverse; }     /* 본인은 [시간] [말풍선] 순서 */
+        .message-row.received .message-content-group { flex-direction: row; }       /* 상대방은 [프로필/닉네임+말풍선] [시간] 순서 */
+
+        .received-details { display: flex; flex-direction: column; gap: 2px; }
+        .sender-name { font-size: 12px; color: #444; margin-left: 4px; }
+
         .message-bubble { 
-            max-width: 75%; 
-            padding: 10px 14px; 
-            border-radius: 14px; 
-            font-size: 15px; 
+            padding: 9px 13px; 
+            border-radius: 8px; 
+            font-size: 14px; 
             line-height: 1.4; 
             word-break: break-all; 
             box-shadow: 0 1px 2px rgba(0,0,0,0.05);
         }
-        .message-wrapper.sent .message-bubble { 
-            background-color: #007bff; 
-            color: white; 
-            border-top-right-radius: 2px; 
+        .message-row.sent .message-bubble { 
+            background-color: #ffeb33; /* 카카오톡 스타일 노란색 */
+            color: #111; 
+            border-top-right-radius: 2px;
         }
-        .message-wrapper.received .message-bubble { 
-            background-color: #e4e6eb; 
-            color: #333; 
+        .message-row.received .message-bubble { 
+            background-color: #ffffff; 
+            color: #111; 
             border-top-left-radius: 2px; 
         }
+
+        /* 시간 표시 스타일 */
+        .message-time { font-size: 10px; color: #4a5a6a; white-space: nowrap; margin-bottom: 2px; }
         
-        .chat-input-area { display: flex; padding: 12px; background: white; border-top: 1px solid #ddd; }
+        .chat-input-area { display: flex; padding: 10px; background: white; border-top: 1px solid #ddd; }
         .chat-input-area input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 15px; outline: none; }
-        .chat-input-area button { width: 80px; margin-left: 8px; padding: 10px; background-color: #007bff; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        .chat-input-area button { width: 70px; margin-left: 8px; padding: 10px; background-color: #ffeb33; color: #333; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        .chat-input-area button:hover { background-color: #f7df1e; }
     </style>
 </head>
 <body>
@@ -123,7 +130,7 @@
 
     let currentMode = 'login';
     let currentUser = "";
-    let lastRenderedDate = ""; // 날짜 변경 감지를 위한 변수
+    let lastRenderedDateKey = ""; // 날짜 구분선 중복 방지용 키
 
     window.switchMode = function(mode) {
         currentMode = mode;
@@ -177,7 +184,7 @@
                 const userData = snapshot.val();
                 if (userData.password === passwordInput) {
                     currentUser = usernameInput;
-                    lastRenderedDate = ""; // 로그인 시점마다 날짜 비교 기준 초기화
+                    lastRenderedDateKey = "";
                     document.getElementById("auth-screen").style.display = "none";
                     document.getElementById("chat-screen").style.display = "flex";
                     document.getElementById("room-title").innerText = `${currentUser}님의 대화방`;
@@ -196,26 +203,25 @@
 
     window.handleLogout = function() {
         currentUser = "";
-        lastRenderedDate = "";
+        lastRenderedDateKey = "";
         document.getElementById("password").value = "";
         document.getElementById("chat-screen").style.display = "none";
         document.getElementById("auth-screen").style.display = "flex";
     };
 
-    // 한국 표준시(KST) 전체 문자열 반환 ("YYYY-MM-DD HH:mm")
-    function getKSTTimestamp() {
+    // 한국 표준시(KST) 기반 타임스탬프 생성 (오전/오후 포맷 포함)
+    function getKSTTimestampData() {
         const now = new Date();
-        const options = {
-            timeZone: 'Asia/Seoul',
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: false
-        };
-        const formatter = new Intl.DateTimeFormat('ko-KR', options);
-        return formatter.format(now).replace(/\.\s/g, '-').replace('.', '').replace(', ', ' ');
+        
+        // 날짜 구분선용 포맷 (예: "2026년 10월 2일 금요일")
+        const dateOptions = { timeZone: 'Asia/Seoul', year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
+        const dateString = new Intl.DateTimeFormat('ko-KR', dateOptions).format(now);
+        
+        // 시간용 포맷 (예: "오전 12:04")
+        const timeOptions = { timeZone: 'Asia/Seoul', hour: 'numeric', minute: '2-digit', hour12: true };
+        const timeString = new Intl.DateTimeFormat('ko-KR', timeOptions).format(now);
+
+        return { dateString, timeString };
     }
 
     window.sendMessage = function() {
@@ -223,13 +229,15 @@
         const text = inputField.value.trim();
         if (!text) return;
 
+        const { dateString, timeString } = getKSTTimestampData();
         const messagesRef = ref(db, 'messages');
         const newMessageRef = push(messagesRef);
         
         set(newMessageRef, {
             sender: currentUser,
             text: text,
-            timestamp: getKSTTimestamp()
+            dateStr: dateString,
+            timeStr: timeString
         }).then(() => {
             inputField.value = "";
         }).catch((error) => {
@@ -251,35 +259,47 @@
             if (!currentUser) return;
 
             const msgData = snapshot.val();
-            const fullTimestamp = msgData.timestamp || ""; // 예: "2026-06-07 14:35"
-            
-            const datePart = fullTimestamp.split(" ")[0]; // "2026-06-07"
-            const timePart = fullTimestamp.split(" ")[1]; // "14:35"
+            const dateStr = msgData.dateStr || "";
+            const timeStr = msgData.timeStr || "";
+            const sender = msgData.sender || "";
+            const text = msgData.text || "";
 
-            // 1. 이전 메시지와 날짜가 다를 때만 날짜 구분선 생성
-            if (datePart && datePart !== lastRenderedDate) {
-                lastRenderedDate = datePart;
+            // 1. 날짜가 바뀔 때만 구분선 삽입
+            if (dateStr && dateStr !== lastRenderedDateKey) {
+                lastRenderedDateKey = dateStr;
                 const dividerDiv = document.createElement("div");
                 dividerDiv.className = "date-divider";
-                dividerDiv.innerHTML = `<span>${datePart}</span>`;
+                dividerDiv.innerHTML = `<span>${dateStr}</span>`;
                 chatMessages.appendChild(dividerDiv);
             }
 
-            // 2. 메시지 영역 렌더링 (닉네임과 시간:분만 표시)
-            const wrapperDiv = document.createElement("div");
-            const isSentByMe = msgData.sender === currentUser;
-            wrapperDiv.className = `message-wrapper ${isSentByMe ? 'sent' : 'received'}`;
-            
-            wrapperDiv.innerHTML = `
-                <div class="message-info">
-                    <span>${msgData.sender}</span>
-                    <span>•</span>
-                    <span>${timePart || ''}</span>
-                </div>
-                <div class="message-bubble">${escapeHtml(msgData.text)}</div>
-            `;
-            
-            chatMessages.appendChild(wrapperDiv);
+            // 2. 메시지 정렬 및 요소 구성
+            const isSentByMe = sender === currentUser;
+            const rowDiv = document.createElement("div");
+            rowDiv.className = `message-row ${isSentByMe ? 'sent' : 'received'}`;
+
+            if (isSentByMe) {
+                // 본인 메시지: [시간] [말풍선] (우측 정렬)
+                rowDiv.innerHTML = `
+                    <div class="message-content-group">
+                        <div class="message-bubble">${escapeHtml(text)}</div>
+                        <span class="message-time">${timeStr}</span>
+                    </div>
+                `;
+            } else {
+                // 상대방 메시지: [닉네임 + 말풍선] [시간] (좌측 정렬)
+                rowDiv.innerHTML = `
+                    <div class="message-content-group">
+                        <div class="received-details">
+                            <span class="sender-name">${escapeHtml(sender)}</span>
+                            <div class="message-bubble">${escapeHtml(text)}</div>
+                        </div>
+                        <span class="message-time">${timeStr}</span>
+                    </div>
+                `;
+            }
+
+            chatMessages.appendChild(rowDiv);
             chatMessages.scrollTop = chatMessages.scrollHeight;
         });
     }
