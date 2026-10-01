@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>1:1 실시간 메신저</title>
+    <title>🦜 Papago</title>
     <style>
         body { font-family: 'Apple SD Gothic Neo', sans-serif; background-color: #f0f2f5; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; position: relative; }
         .container { width: 100%; max-width: 420px; background: #bac7d3; height: 100%; max-height: 750px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: flex; flex-direction: column; overflow: hidden; position: relative; }
@@ -141,7 +141,7 @@
             <button class="fake-escape-btn" onclick="openTranslator()">🌐 네이버 번역기</button>
         </div>
 
-        <h2>메신저 인증</h2>
+        <h2>✉️ 메세지 ✉️</h2>
         <div class="tab-menu">
             <button class="tab-btn active" id="login-tab" onclick="switchMode('login')">로그인</button>
             <button class="tab-btn" id="signup-tab" onclick="switchMode('signup')">회원가입</button>
@@ -161,9 +161,9 @@
     <!-- 2. 실시간 채팅 화면 -->
     <div id="chat-screen">
         <div class="chat-header">
-            <span id="room-title">1:1 채팅방</span>
+            <span id="room-title">🦜 Papago</span>
             <div class="header-btn-group">
-                <button class="fake-escape-btn" onclick="openTranslator()">🌐 네이버 번역기</button>
+                <button class="fake-escape-btn" onclick="openTranslator()">🦜 번역기 바로가기</button>
                 <button class="logout-btn" onclick="handleLogout()">로그아웃</button>
             </div>
         </div>
@@ -178,8 +178,8 @@
 <!-- 3. 위장 번역기 화면 (브라우저 전체 화면 오버레이) -->
 <div id="translator-screen">
     <div class="translator-header">
-        <span>네이버 파파고 번역</span>
-        <button class="return-btn" onclick="closeTranslator()">💬 메신저 복귀</button>
+        <span>🦜 Papago</span>
+        <button class="return-btn" onclick="closeTranslator()">✉️ 채팅창 바로가기</button>
     </div>
     <!-- 실제 파파고 웹페이지 내장 -->
     <iframe src="https://papago.naver.com/" id="papago-frame"></iframe>
