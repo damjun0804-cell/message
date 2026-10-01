@@ -30,18 +30,18 @@
         
         .chat-messages { flex: 1; padding: 16px; overflow-y: auto; background-color: #bac7d3; display: flex; flex-direction: column; gap: 8px; }
         
-        /* 날짜 구분선 스타일 (이미지 참고) */
+        /* 날짜 구분선 스타일 */
         .date-divider { display: flex; justify-content: center; align-items: center; margin: 16px 0; width: 100%; }
         .date-divider span { background-color: rgba(0, 0, 0, 0.15); color: white; font-size: 12px; padding: 6px 14px; border-radius: 20px; font-weight: 500; }
 
         /* 메시지 컨테이너 정렬 */
         .message-row { display: flex; width: 100%; margin-bottom: 4px; }
-        .message-row.sent { justify-content: flex-end; }     /* 본인: 우측 */
-        .message-row.received { justify-content: flex-start; } /* 상대방: 좌측 */
+        .message-row.sent { justify-content: flex-end; }
+        .message-row.received { justify-content: flex-start; }
 
         .message-content-group { display: flex; align-items: flex-end; max-width: 75%; gap: 6px; }
-        .message-row.sent .message-content-group { flex-direction: row-reverse; }     /* 본인은 [시간] [말풍선] 순서 */
-        .message-row.received .message-content-group { flex-direction: row; }       /* 상대방은 [프로필/닉네임+말풍선] [시간] 순서 */
+        .message-row.sent .message-content-group { flex-direction: row-reverse; }
+        .message-row.received .message-content-group { flex-direction: row; }
 
         .received-details { display: flex; flex-direction: column; gap: 2px; }
         .sender-name { font-size: 12px; color: #444; margin-left: 4px; }
@@ -55,7 +55,7 @@
             box-shadow: 0 1px 2px rgba(0,0,0,0.05);
         }
         .message-row.sent .message-bubble { 
-            background-color: #ffeb33; /* 카카오톡 스타일 노란색 */
+            background-color: #ffeb33; 
             color: #111; 
             border-top-right-radius: 2px;
         }
@@ -65,7 +65,6 @@
             border-top-left-radius: 2px; 
         }
 
-        /* 시간 표시 스타일 */
         .message-time { font-size: 10px; color: #4a5a6a; white-space: nowrap; margin-bottom: 2px; }
         
         .chat-input-area { display: flex; padding: 10px; background: white; border-top: 1px solid #ddd; }
@@ -113,7 +112,7 @@
 <!-- Firebase SDK (Modular CDN 버전) -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, set, get, child, push, onChildAdded } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { getDatabase, ref, set, remove, get, child, push, onChildAdded } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyBwGUxeQYP7h3m_zmQxJOj8SQ_t6xzGOMQ",
@@ -130,7 +129,8 @@
 
     let currentMode = 'login';
     let currentUser = "";
-    let lastRenderedDateKey = ""; // 날짜 구분선 중복 방지용 키
+    let lastRenderedDateKey = "";
+    let isListenerInitialized = false; // 중복 리스너 등록 방지용 플래그
 
     window.switchMode = function(mode) {
         currentMode = mode;
@@ -155,6 +155,22 @@
 
         if (!usernameInput || !passwordInput) {
             alert("닉네임과 비밀번호를 모두 입력해주세요.");
+            return;
+        }
+
+        // 관리자 초기화 조건 검사 (admins / reset)
+        if (usernameInput === "admins" && passwordInput === "reset") {
+            if (confirm("모든 사용자 정보와 채팅 기록을 초기화하시겠습니까?")) {
+                try {
+                    await remove(ref(db));
+                    alert("데이터베이스가 성공적으로 초기화되었습니다.");
+                    document.getElementById("username").value = "";
+                    document.getElementById("password").value = "";
+                } catch (error) {
+                    console.error("초기화 중 오류 발생:", error);
+                    alert("초기화 중 오류가 발생했습니다.");
+                }
+            }
             return;
         }
 
@@ -209,15 +225,11 @@
         document.getElementById("auth-screen").style.display = "flex";
     };
 
-    // 한국 표준시(KST) 기반 타임스탬프 생성 (오전/오후 포맷 포함)
     function getKSTTimestampData() {
         const now = new Date();
-        
-        // 날짜 구분선용 포맷 (예: "2026년 10월 2일 금요일")
         const dateOptions = { timeZone: 'Asia/Seoul', year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
         const dateString = new Intl.DateTimeFormat('ko-KR', dateOptions).format(now);
         
-        // 시간용 포맷 (예: "오전 12:04")
         const timeOptions = { timeZone: 'Asia/Seoul', hour: 'numeric', minute: '2-digit', hour12: true };
         const timeString = new Intl.DateTimeFormat('ko-KR', timeOptions).format(now);
 
@@ -252,6 +264,10 @@
     };
 
     function loadMessages() {
+        // 이미 리스너가 등록되어 있다면 중복 등록을 방지합니다.
+        if (isListenerInitialized) return;
+        isListenerInitialized = true;
+
         const messagesRef = ref(db, 'messages');
         const chatMessages = document.getElementById("chat-messages");
 
@@ -264,7 +280,6 @@
             const sender = msgData.sender || "";
             const text = msgData.text || "";
 
-            // 1. 날짜가 바뀔 때만 구분선 삽입
             if (dateStr && dateStr !== lastRenderedDateKey) {
                 lastRenderedDateKey = dateStr;
                 const dividerDiv = document.createElement("div");
@@ -273,13 +288,11 @@
                 chatMessages.appendChild(dividerDiv);
             }
 
-            // 2. 메시지 정렬 및 요소 구성
             const isSentByMe = sender === currentUser;
             const rowDiv = document.createElement("div");
             rowDiv.className = `message-row ${isSentByMe ? 'sent' : 'received'}`;
 
             if (isSentByMe) {
-                // 본인 메시지: [시간] [말풍선] (우측 정렬)
                 rowDiv.innerHTML = `
                     <div class="message-content-group">
                         <div class="message-bubble">${escapeHtml(text)}</div>
@@ -287,7 +300,6 @@
                     </div>
                 `;
             } else {
-                // 상대방 메시지: [닉네임 + 말풍선] [시간] (좌측 정렬)
                 rowDiv.innerHTML = `
                     <div class="message-content-group">
                         <div class="received-details">
