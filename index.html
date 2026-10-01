@@ -91,7 +91,7 @@
         .chat-input-area button { width: 70px; margin-left: 8px; padding: 10px; background-color: #ffeb33; color: #333; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
         .chat-input-area button:hover { background-color: #f7df1e; }
 
-        /* [수정] 번역기 위장 화면 스타일: body 기준 전체 화면(100vw, 100vh)을 덮도록 설정 */
+        /* 번역기 위장 화면 스타일 */
         #translator-screen {
             display: none;
             position: fixed;
@@ -181,7 +181,6 @@
         <span>🦜 Papago</span>
         <button class="return-btn" onclick="closeTranslator()">✉️ 채팅창 바로가기</button>
     </div>
-    <!-- 실제 파파고 웹페이지 내장 -->
     <iframe src="https://papago.naver.com/" id="papago-frame"></iframe>
 </div>
 
@@ -208,12 +207,10 @@
     let lastRenderedDateKey = "";
     let isListenerInitialized = false;
 
-    // [위장 기능] 번역기 화면 전체 화면으로 열기
     window.openTranslator = function() {
         document.getElementById("translator-screen").style.display = "flex";
     };
 
-    // [위장 기능] 원래 메신저 화면으로 복귀
     window.closeTranslator = function() {
         document.getElementById("translator-screen").style.display = "none";
     };
@@ -244,7 +241,6 @@
             return;
         }
 
-        // 관리자 초기화 조건 검사 (admins / reset)
         if (usernameInput === "admins" && passwordInput === "reset") {
             if (confirm("모든 사용자 정보와 채팅 기록을 초기화하시겠습니까?")) {
                 try {
@@ -349,56 +345,78 @@
         }
     };
 
-    function loadMessages() {
-        if (isListenerInitialized) return;
-        isListenerInitialized = true;
+    // 메시지를 화면에 렌더링하는 공통 함수
+    function renderMessage(msgData) {
+        const chatMessages = document.getElementById("chat-messages");
+        const dateStr = msgData.dateStr || "";
+        const timeStr = msgData.timeStr || "";
+        const sender = msgData.sender || "";
+        const text = msgData.text || "";
 
+        if (dateStr && dateStr !== lastRenderedDateKey) {
+            lastRenderedDateKey = dateStr;
+            const dividerDiv = document.createElement("div");
+            dividerDiv.className = "date-divider";
+            dividerDiv.innerHTML = `<span>${dateStr}</span>`;
+            chatMessages.appendChild(dividerDiv);
+        }
+
+        const isSentByMe = sender === currentUser;
+        const rowDiv = document.createElement("div");
+        rowDiv.className = `message-row ${isSentByMe ? 'sent' : 'received'}`;
+
+        if (isSentByMe) {
+            rowDiv.innerHTML = `
+                <div class="message-content-group">
+                    <div class="message-bubble">${escapeHtml(text)}</div>
+                    <span class="message-time">${timeStr}</span>
+                </div>
+            `;
+        } else {
+            rowDiv.innerHTML = `
+                <div class="message-content-group">
+                    <div class="received-details">
+                        <span class="sender-name">${escapeHtml(sender)}</span>
+                        <div class="message-bubble">${escapeHtml(text)}</div>
+                    </div>
+                    <span class="message-time">${timeStr}</span>
+                </div>
+            `;
+        }
+
+        chatMessages.appendChild(rowDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    // 기존 대화 불러오기 및 실시간 리스너 연동
+    async function loadMessages() {
         const messagesRef = ref(db, 'messages');
         const chatMessages = document.getElementById("chat-messages");
+        chatMessages.innerHTML = "";
+        lastRenderedDateKey = "";
 
-        onChildAdded(messagesRef, (snapshot) => {
-            if (!currentUser) return;
-
-            const msgData = snapshot.val();
-            const dateStr = msgData.dateStr || "";
-            const timeStr = msgData.timeStr || "";
-            const sender = msgData.sender || "";
-            const text = msgData.text || "";
-
-            if (dateStr && dateStr !== lastRenderedDateKey) {
-                lastRenderedDateKey = dateStr;
-                const dividerDiv = document.createElement("div");
-                dividerDiv.className = "date-divider";
-                dividerDiv.innerHTML = `<span>${dateStr}</span>`;
-                chatMessages.appendChild(dividerDiv);
+        // 1. 로그인/진입 시점에 이미 데이터베이스에 저장된 모든 메시지 한 번에 불러오기
+        try {
+            const snapshot = await get(messagesRef);
+            if (snapshot.exists()) {
+                snapshot.forEach((childSnapshot) => {
+                    renderMessage(childSnapshot.val());
+                });
             }
+        } catch (error) {
+            console.error("기존 메시지 불러오기 실패:", error);
+        }
 
-            const isSentByMe = sender === currentUser;
-            const rowDiv = document.createElement("div");
-            rowDiv.className = `message-row ${isSentByMe ? 'sent' : 'received'}`;
-
-            if (isSentByMe) {
-                rowDiv.innerHTML = `
-                    <div class="message-content-group">
-                        <div class="message-bubble">${escapeHtml(text)}</div>
-                        <span class="message-time">${timeStr}</span>
-                    </div>
-                `;
-            } else {
-                rowDiv.innerHTML = `
-                    <div class="message-content-group">
-                        <div class="received-details">
-                            <span class="sender-name">${escapeHtml(sender)}</span>
-                            <div class="message-bubble">${escapeHtml(text)}</div>
-                        </div>
-                        <span class="message-time">${timeStr}</span>
-                    </div>
-                `;
-            }
-
-            chatMessages.appendChild(rowDiv);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        });
+        // 2. 이후 실시간으로 추가되는 메시지 수신 (중복 리스너 등록 방지)
+        if (!isListenerInitialized) {
+            isListenerInitialized = true;
+            onChildAdded(messagesRef, (snapshot) => {
+                if (!currentUser) return;
+                // 전체 로드 이후 새로 추가되는 실시간 메시지 렌더링
+                // (중복 출력을 막기 위해 이미 렌더링된 이후 시점의 데이터만 반영)
+                renderMessage(snapshot.val());
+            });
+        }
     }
 
     function escapeHtml(text) {
