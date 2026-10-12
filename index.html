@@ -207,7 +207,7 @@
     const db = getDatabase(app);
 
     let currentMode = 'login';
-    let currentUser = "";
+    let currentUser = localStorage.getItem("chat_currentUser") || "";
     let lastRenderedDateKey = "";
     let isListenerInitialized = false;
 
@@ -226,6 +226,14 @@
         window.visualViewport.addEventListener('scroll', setAppHeight);
     }
     setAppHeight();
+
+    // 페이지 로드 시 로그인 상태 확인 후 자동 진입
+    if (currentUser) {
+        document.getElementById("auth-screen").style.display = "none";
+        document.getElementById("chat-screen").style.display = "flex";
+        document.getElementById("room-title").innerText = `${currentUser}님의 대화방`;
+        loadMessages();
+    }
 
     window.openTranslator = function() {
         document.getElementById("translator-screen").style.display = "flex";
@@ -265,6 +273,7 @@
             if (confirm("모든 사용자 정보와 채팅 기록을 초기화하시겠습니까?")) {
                 try {
                     await remove(ref(db));
+                    localStorage.removeItem("chat_currentUser");
                     alert("데이터베이스가 성공적으로 초기화되었습니다.");
                     document.getElementById("username").value = "";
                     document.getElementById("password").value = "";
@@ -302,6 +311,7 @@
                 const userData = snapshot.val();
                 if (userData.password === passwordInput) {
                     currentUser = usernameInput;
+                    localStorage.setItem("chat_currentUser", currentUser); // 로컬스토리지에 저장하여 유지
                     lastRenderedDateKey = "";
                     document.getElementById("auth-screen").style.display = "none";
                     document.getElementById("chat-screen").style.display = "flex";
@@ -321,6 +331,7 @@
 
     window.handleLogout = function() {
         currentUser = "";
+        localStorage.removeItem("chat_currentUser"); // 로그아웃 시 저장된 정보 삭제
         lastRenderedDateKey = "";
         document.getElementById("password").value = "";
         document.getElementById("chat-screen").style.display = "none";
