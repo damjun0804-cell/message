@@ -211,6 +211,17 @@
     let lastRenderedDateKey = "";
     let isListenerInitialized = false;
 
+    // 안 읽은 메시지 카운트 및 타이틀 관련 변수
+    let unreadCount = 0;
+    let initialLoadFinished = false;
+    const originalTitle = "🦜 Papago";
+
+    // 브라우저 창에 포커스가 돌아오면 안 읽은 메시지 카운트 초기화 및 타이틀 원복
+    window.addEventListener('focus', () => {
+        unreadCount = 0;
+        document.title = originalTitle;
+    });
+
     // 브라우저별 실제 가용 뷰포트 높이를 강제로 계산하여 적용하는 함수
     function setAppHeight() {
         const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
@@ -311,7 +322,7 @@
                 const userData = snapshot.val();
                 if (userData.password === passwordInput) {
                     currentUser = usernameInput;
-                    localStorage.setItem("chat_currentUser", currentUser); // 로컬스토리지에 저장하여 유지
+                    localStorage.setItem("chat_currentUser", currentUser);
                     lastRenderedDateKey = "";
                     document.getElementById("auth-screen").style.display = "none";
                     document.getElementById("chat-screen").style.display = "flex";
@@ -331,8 +342,10 @@
 
     window.handleLogout = function() {
         currentUser = "";
-        localStorage.removeItem("chat_currentUser"); // 로그아웃 시 저장된 정보 삭제
+        localStorage.removeItem("chat_currentUser");
         lastRenderedDateKey = "";
+        unreadCount = 0;
+        document.title = originalTitle;
         document.getElementById("password").value = "";
         document.getElementById("chat-screen").style.display = "none";
         document.getElementById("auth-screen").style.display = "flex";
@@ -365,7 +378,7 @@
             timeStr: timeString
         }).then(() => {
             inputField.value = "";
-            inputField.focus(); // 패드(태블릿) 키보드 유지용 포커스 고정
+            inputField.focus();
         }).catch((error) => {
             console.error("메시지 전송 실패:", error);
         });
@@ -426,6 +439,7 @@
         const chatMessages = document.getElementById("chat-messages");
         chatMessages.innerHTML = "";
         lastRenderedDateKey = "";
+        initialLoadFinished = false;
 
         try {
             const snapshot = await get(messagesRef);
@@ -438,11 +452,20 @@
             console.error("기존 메시지 불러오기 실패:", error);
         }
 
+        initialLoadFinished = true; // 과거 기록 로딩 완료
+
         if (!isListenerInitialized) {
             isListenerInitialized = true;
             onChildAdded(messagesRef, (snapshot) => {
                 if (!currentUser) return;
-                renderMessage(snapshot.val());
+                const msgData = snapshot.val();
+                renderMessage(msgData);
+
+                // 기존 로딩 이후에 실시간으로 들어온 타인의 메시지만 카운트 증가
+                if (initialLoadFinished && msgData.sender !== currentUser) {
+                    unreadCount++;
+                    document.title = `${originalTitle} (${unreadCount})`;
+                }
             });
         }
     }
