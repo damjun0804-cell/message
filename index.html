@@ -375,6 +375,9 @@
     let initialLoadFinished = false;
     const originalTitle = "🦜 Papago";
 
+    // 편지 데이터 임시 저장용 맵
+    const secretLettersMap = {};
+
     window.addEventListener('focus', () => {
         unreadCount = 0;
         document.title = originalTitle;
@@ -653,8 +656,12 @@
         });
     };
 
-    window.openLetterDetail = function(title, content) {
-        alert(`[${title}]\n\n${content}`);
+    // 안전하게 편지 내용을 띄워주는 함수
+    window.openLetterDetailById = function(msgId) {
+        const letter = secretLettersMap[msgId];
+        if (letter) {
+            alert(`[${letter.title}]\n\n${letter.content}`);
+        }
     };
 
     window.handleKeyPress = function(event) {
@@ -697,6 +704,8 @@
         let bubbleContent = "";
 
         if (msgData.type === "secret_letter") {
+            secretLettersMap[msgId] = msgData;
+
             const now = new Date().getTime();
             const isOpenable = now >= msgData.openTime;
             const openDateFormatted = new Date(msgData.openTime).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' });
@@ -707,7 +716,7 @@
                     <div class="letter-card-preview" id="preview-${msgId}">
                         ${isOpenable ? `열람 가능! (${openDateFormatted})` : `🔒 ${escapeHtml(msgData.preview)}<br><small style="color:#888;">열릴 시간: ${openDateFormatted}</small>`}
                     </div>
-                    <button class="letter-open-btn" id="btn-${msgId}" ${isOpenable ? '' : 'disabled'} onclick="openLetterDetail('${escapeHtml(msgData.title).replace(/'/g, "\\'")}', '${escapeHtml(msgData.content).replace(/'/g, "\\'")}')">
+                    <button class="letter-open-btn" id="btn-${msgId}" ${isOpenable ? '' : 'disabled'} onclick="event.stopPropagation(); openLetterDetailById('${msgId}')">
                         ${isOpenable ? '편지 열기' : '잠겨있는 편지'}
                     </button>
                 </div>
