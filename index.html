@@ -575,7 +575,6 @@
         const text = inputField.value.trim();
         if (!text) return;
 
-        // message123 입력 시 비밀 편지 작성 모달 띄우기
         if (text === "message123") {
             inputField.value = "";
             document.getElementById("letter-modal").style.display = "flex";
@@ -786,7 +785,6 @@
             .replace(/</g, "&lt;")
             .replace(/>/g, "&gt;")
             .replace(/"/g, "&quot;")
-            .replace( 말하기용변환 /g, "&#039;")
             .replace(/'/g, "&#039;");
     }
 </script>
