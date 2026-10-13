@@ -253,6 +253,61 @@
             background-color: #cccccc;
             cursor: not-allowed;
         }
+
+        /* 편지 내용 전체 읽기 모달 스타일 (신규) */
+        #letter-view-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.6);
+            z-index: 999999;
+            justify-content: center;
+            align-items: center;
+        }
+        .letter-view-content {
+            background: #fffef7;
+            width: 88%;
+            max-width: 380px;
+            max-height: 80vh;
+            padding: 24px 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+            position: relative;
+        }
+        .letter-view-header {
+            border-bottom: 2px dashed #e0d5c1;
+            padding-bottom: 12px;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+        .letter-view-title { font-size: 18px; font-weight: bold; color: #2c2c2c; margin-bottom: 4px; word-break: break-all; }
+        .letter-view-sender { font-size: 12px; color: #888; }
+        .letter-view-body {
+            flex: 1;
+            overflow-y: auto;
+            font-size: 15px;
+            line-height: 1.6;
+            color: #333;
+            white-space: pre-wrap;
+            word-break: break-all;
+            padding-right: 4px;
+        }
+        .letter-view-close-btn {
+            margin-top: 16px;
+            width: 100%;
+            padding: 12px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .letter-view-close-btn:hover { background-color: #0056b3; }
     </style>
     <meta property="og:title" content="네이버 파파고">
     <meta property="og:description" content="언어 장벽 없는 스마트한 글로벌 소통, 파파고 번역기">
@@ -346,6 +401,20 @@
     </div>
 </div>
 
+<!-- 5. 편지 읽기 창 모달 (신규 추가) -->
+<div id="letter-view-modal">
+    <div class="letter-view-content">
+        <div class="letter-view-header">
+            <div class="letter-view-title" id="view-letter-title">💌 편지 제목</div>
+            <div class="letter-view-sender" id="view-letter-sender">From. 작성자</div>
+        </div>
+        <div class="letter-view-body" id="view-letter-body">
+            편지 내용이 들어갑니다.
+        </div>
+        <button class="letter-view-close-btn" onclick="closeLetterViewModal()">닫기</button>
+    </div>
+</div>
+
 <!-- Firebase SDK (Modular CDN 버전) -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -375,7 +444,7 @@
     let initialLoadFinished = false;
     const originalTitle = "🦜 Papago";
 
-    // 편지 데이터 임시 저장용 맵
+    // 편지 데이터 저장용 객체
     const secretLettersMap = {};
 
     window.addEventListener('focus', () => {
@@ -656,12 +725,19 @@
         });
     };
 
-    // 안전하게 편지 내용을 띄워주는 함수
+    // 팝업 창 모달로 편지 내용 전체 열기
     window.openLetterDetailById = function(msgId) {
         const letter = secretLettersMap[msgId];
         if (letter) {
-            alert(`[${letter.title}]\n\n${letter.content}`);
+            document.getElementById("view-letter-title").innerText = `💌 ${letter.title}`;
+            document.getElementById("view-letter-sender").innerText = `From. ${letter.sender}`;
+            document.getElementById("view-letter-body").innerText = letter.content;
+            document.getElementById("letter-view-modal").style.display = "flex";
         }
+    };
+
+    window.closeLetterViewModal = function() {
+        document.getElementById("letter-view-modal").style.display = "none";
     };
 
     window.handleKeyPress = function(event) {
