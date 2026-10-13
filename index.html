@@ -617,12 +617,17 @@
         const title = document.getElementById("letter-title-input").value.trim();
         const preview = document.getElementById("letter-preview-input").value.trim();
         const content = document.getElementById("letter-content-input").value.trim();
-        const openTime = document.getElementById("letter-time-input").value;
+        const openTimeVal = document.getElementById("letter-time-input").value;
 
-        if (!title || !preview || !content || !openTime) {
+        if (!title || !preview || !content || !openTimeVal) {
             alert("모든 항목을 정확히 입력해주세요.");
             return;
         }
+
+        const [datePart, timePart] = openTimeVal.split('T');
+        const [year, month, day] = datePart.split('-').map(Number);
+        const [hour, minute] = timePart.split(':').map(Number);
+        const openTimeMs = new Date(year, month - 1, day, hour, minute).getTime();
 
         const { dateString, timeString } = getKSTTimestampData();
         const messagesRef = ref(db, 'messages');
@@ -634,7 +639,7 @@
             title: title,
             preview: preview,
             content: content,
-            openTime: new Date(openTime).getTime(),
+            openTime: openTimeMs,
             dateStr: dateString,
             timeStr: timeString
         };
