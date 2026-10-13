@@ -438,7 +438,6 @@
         previewBar.style.display = "flex";
         document.getElementById("message-input").focus();
         
-        // 답장 시작 시 열려있던 버튼 닫기
         document.querySelectorAll('.message-row.show-reply').forEach(row => {
             row.classList.remove('show-reply');
         });
@@ -461,7 +460,6 @@
         }
     };
 
-    // 모바일 터치 시 답장 버튼 토글
     window.toggleReplyButton = function(event, msgRowId) {
         event.stopPropagation();
         const targetRow = document.getElementById(msgRowId);
@@ -477,7 +475,6 @@
         }
     };
 
-    // 여백 터치 시 답장 버튼 숨김
     document.addEventListener('click', () => {
         document.querySelectorAll('.message-row.show-reply').forEach(row => {
             row.classList.remove('show-reply');
@@ -595,7 +592,8 @@
             const snapshot = await get(messagesRef);
             if (snapshot.exists()) {
                 snapshot.forEach((childSnapshot) => {
-                    renderMessage(childSnapshot.key, childSnapshot.val());
+                    const msgId = childSnapshot.key || 'msg_' + Math.random().toString(36).substring(2, 9);
+                    renderMessage(msgId, childSnapshot.val());
                 });
             }
         } catch (error) {
@@ -609,7 +607,8 @@
             onChildAdded(messagesRef, (snapshot) => {
                 if (!currentUser) return;
                 const msgData = snapshot.val();
-                renderMessage(snapshot.key, msgData);
+                const msgId = snapshot.key || 'msg_' + Math.random().toString(36).substring(2, 9);
+                renderMessage(msgId, msgData);
 
                 if (initialLoadFinished && msgData.sender !== currentUser) {
                     unreadCount++;
