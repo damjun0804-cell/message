@@ -377,7 +377,7 @@
 <!-- 4. 비밀 편지 작성 모달 -->
 <div id="letter-modal">
     <div class="letter-modal-content">
-        <h3>💌 비밀 편지 작성</h3>
+        <h3>✉️ 비밀 편지 작성</h3>
         <div>
             <label>편지 제목</label>
             <input type="text" id="letter-title-input" placeholder="제목을 입력하세요">
@@ -405,7 +405,7 @@
 <div id="letter-view-modal">
     <div class="letter-view-content">
         <div class="letter-view-header">
-            <div class="letter-view-title" id="view-letter-title">💌 편지 제목</div>
+            <div class="letter-view-title" id="view-letter-title">✉️ 편지 제목</div>
             <div class="letter-view-sender" id="view-letter-sender">From. 작성자</div>
         </div>
         <div class="letter-view-body" id="view-letter-body">
@@ -729,7 +729,7 @@
     window.openLetterDetailById = function(msgId) {
         const letter = secretLettersMap[msgId];
         if (letter) {
-            document.getElementById("view-letter-title").innerText = `💌 ${letter.title}`;
+            document.getElementById("view-letter-title").innerText = `✉️ ${letter.title}`;
             document.getElementById("view-letter-sender").innerText = `From. ${letter.sender}`;
             document.getElementById("view-letter-body").innerText = letter.content;
             document.getElementById("letter-view-modal").style.display = "flex";
@@ -788,7 +788,7 @@
 
             bubbleContent = `
                 <div class="secret-letter-card">
-                    <div class="letter-card-title">💌 ${escapeHtml(msgData.title)}</div>
+                    <div class="letter-card-title">✉️ ${escapeHtml(msgData.title)}</div>
                     <div class="letter-card-preview" id="preview-${msgId}">
                         ${isOpenable ? `` : `🔒 ${escapeHtml(msgData.preview)}<br><small style="color:#888;">열릴 시간: ${openDateFormatted}</small>`}
                     </div>
