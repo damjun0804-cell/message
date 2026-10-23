@@ -790,7 +790,7 @@
                 <div class="secret-letter-card">
                     <div class="letter-card-title">💌 ${escapeHtml(msgData.title)}</div>
                     <div class="letter-card-preview" id="preview-${msgId}">
-                        ${isOpenable ? `열람 가능! (${openDateFormatted})` : `🔒 ${escapeHtml(msgData.preview)}<br><small style="color:#888;">열릴 시간: ${openDateFormatted}</small>`}
+                        ${isOpenable ? `` : `🔒 ${escapeHtml(msgData.preview)}<br><small style="color:#888;">열릴 시간: ${openDateFormatted}</small>`}
                     </div>
                     <button class="letter-open-btn" id="btn-${msgId}" ${isOpenable ? '' : 'disabled'} onclick="event.stopPropagation(); openLetterDetailById('${msgId}')">
                         ${isOpenable ? '편지 열기' : '잠겨있는 편지'}
