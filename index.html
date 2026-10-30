@@ -8,9 +8,8 @@
         body { font-family: 'Apple SD Gothic Neo', sans-serif; background-color: #f0f2f5; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; position: relative; }
         .container { width: 100%; max-width: 420px; background: #bac7d3; height: 100vh; max-height: 750px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: flex; flex-direction: column; overflow: hidden; position: relative; }
         
-        /* 위장용 빠른 번역기 전환 버튼 스타일 */
         .fake-escape-btn {
-            background-color: #03c75a; /* 네이버 그린 색상 */
+            background-color: #03c75a;
             color: white;
             border: none;
             padding: 6px 10px;
@@ -24,7 +23,6 @@
         }
         .fake-escape-btn:hover { background-color: #02b350; }
 
-        /* 인증 화면 스타일 */
         #auth-screen { background: white; padding: 40px 20px; display: flex; flex-direction: column; justify-content: center; height: 100%; box-sizing: border-box; position: relative; }
         .auth-top-bar { position: absolute; top: 16px; right: 20px; }
         #auth-screen h2 { text-align: center; margin-bottom: 24px; color: #333; }
@@ -40,7 +38,6 @@
         .action-btn { width: 100%; padding: 12px; background-color: #007bff; color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
         .action-btn:hover { background-color: #0056b3; }
 
-        /* 채팅 화면 스타일 */
         #chat-screen { display: none; flex-direction: column; height: 100%; }
         .chat-header { background-color: #9cb2c9; color: #222; padding: 16px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 17px; border-bottom: 1px solid rgba(0,0,0,0.05); flex-shrink: 0; }
         .header-btn-group { display: flex; gap: 6px; align-items: center; }
@@ -49,15 +46,12 @@
         
         .chat-messages { flex: 1; padding: 16px; overflow-y: auto; background-color: #bac7d3; display: flex; flex-direction: column; gap: 8px; scroll-behavior: smooth; }
         
-        /* 날짜 구분선 스타일 */
         .date-divider { display: flex; justify-content: center; align-items: center; margin: 16px 0; width: 100%; }
         .date-divider span { background-color: rgba(0, 0, 0, 0.15); color: white; font-size: 12px; padding: 6px 14px; border-radius: 20px; font-weight: 500; }
 
-        /* 메시지 컨테이너 정렬 및 강조 효과 */
-        .message-row { display: flex; width: 100%; margin-bottom: 4px; position: relative; transition: background-color 0.5s; }
+        .message-row { display: flex; width: 100%; margin-bottom: 4px; position: relative; }
         .message-row.sent { justify-content: flex-end; }
         .message-row.received { justify-content: flex-start; }
-        .message-row.highlight { background-color: rgba(255, 235, 51, 0.4); border-radius: 6px; }
 
         .message-content-group { display: flex; align-items: flex-end; max-width: 75%; gap: 6px; position: relative; }
         .message-row.sent .message-content-group { flex-direction: row-reverse; }
@@ -74,7 +68,6 @@
             word-break: break-all; 
             box-shadow: 0 1px 2px rgba(0,0,0,0.05);
             position: relative;
-            cursor: pointer;
         }
         .message-row.sent .message-bubble { 
             background-color: #ffeb33; 
@@ -87,72 +80,14 @@
             border-top-left-radius: 2px; 
         }
 
-        /* 모바일 터치 토글 방식 답장 버튼 스타일 */
-        .reply-action-btn {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            background: rgba(0, 0, 0, 0.7);
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            font-size: 11px;
-            border-radius: 4px;
-            cursor: pointer;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.2s, visibility 0.2s;
-            white-space: nowrap;
-            z-index: 10;
-        }
-        .message-row.show-reply .reply-action-btn {
-            opacity: 1;
-            visibility: visible;
-        }
-        .message-row.sent .reply-action-btn { right: calc(100% + 8px); }
-        .message-row.received .reply-action-btn { left: calc(100% + 8px); }
-
-        /* 카카오톡 스타일 인용 박스 */
-        .quoted-box {
-            background: rgba(0, 0, 0, 0.04);
-            border-left: 2.5px solid #a0a0a0;
-            padding: 5px 8px;
-            margin-bottom: 6px;
-            border-radius: 2px;
-            font-size: 12px;
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            gap: 1px;
-        }
-        .quoted-box:hover { background: rgba(0, 0, 0, 0.08); }
-        .quoted-sender { font-weight: 600; color: #444; font-size: 11px; }
-        .quoted-text { color: #666; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 180px; }
-
         .message-time { font-size: 10px; color: #4a5a6a; white-space: nowrap; margin-bottom: 2px; }
         
-        /* 입력창 및 답장 미리보기 바 */
         .chat-input-container { display: flex; flex-direction: column; background: white; border-top: 1px solid #ddd; flex-shrink: 0; }
-        
-        .reply-preview-bar {
-            display: none;
-            justify-content: space-between;
-            align-items: center;
-            background: #f4f4f4;
-            padding: 8px 12px;
-            font-size: 12px;
-            border-bottom: 1px solid #e1e1e1;
-            border-left: 3px solid #ffe812;
-        }
-        .reply-preview-content { color: #333; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .reply-preview-close { background: none; border: none; font-size: 14px; cursor: pointer; color: #888; }
-
         .chat-input-area { display: flex; padding: 10px; }
         .chat-input-area input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 15px; outline: none; }
         .chat-input-area button { width: 70px; margin-left: 8px; padding: 10px; background-color: #ffeb33; color: #333; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
         .chat-input-area button:hover { background-color: #f7df1e; }
 
-        /* 위장 번역기 화면 스타일 */
         #translator-screen {
             display: none;
             position: fixed;
@@ -192,7 +127,6 @@
             border: none;
         }
 
-        /* 비밀 편지 작성 모달 스타일 */
         #letter-modal {
             display: none;
             position: fixed;
@@ -225,7 +159,6 @@
         .letter-cancel-btn { background-color: #ddd; color: #333; }
         .letter-submit-btn { background-color: #007bff; color: white; }
 
-        /* 편지 카드 스타일 (채팅창 내부) */
         .secret-letter-card {
             background: #fff;
             border: 2px dashed #007bff;
@@ -254,7 +187,6 @@
             cursor: not-allowed;
         }
 
-        /* 편지 내용 전체 읽기 모달 스타일 (신규) */
         #letter-view-modal {
             display: none;
             position: fixed;
@@ -317,7 +249,6 @@
 <body>
 
 <div class="container">
-    <!-- 1. 인증 화면 (로그인 / 회원가입) -->
     <div id="auth-screen">
         <div class="auth-top-bar">
             <button class="fake-escape-btn" onclick="openTranslator()">🦜 번역기 바로가기</button>
@@ -340,7 +271,6 @@
         <button class="action-btn" id="auth-action-btn" onclick="handleAuth()">로그인하기</button>
     </div>
 
-    <!-- 2. 실시간 채팅 화면 -->
     <div id="chat-screen">
         <div class="chat-header">
             <span id="room-title">🦜 Papago</span>
@@ -351,12 +281,7 @@
         </div>
         <div class="chat-messages" id="chat-messages"></div>
         
-        <!-- 입력창 및 답장 미리보기 영역 -->
         <div class="chat-input-container">
-            <div id="reply-preview-bar" class="reply-preview-bar">
-                <span id="reply-preview-text" class="reply-preview-content"></span>
-                <button class="reply-preview-close" onclick="cancelReply()">✕</button>
-            </div>
             <div class="chat-input-area">
                 <input type="text" id="message-input" placeholder="메시지를 입력하세요..." onkeypress="handleKeyPress(event)">
                 <button onclick="sendMessage()">전송</button>
@@ -365,7 +290,6 @@
     </div>
 </div>
 
-<!-- 3. 위장 번역기 화면 (브라우저 전체 화면 오버레이) -->
 <div id="translator-screen">
     <div class="translator-header">
         <span>🦜 Papago</span>
@@ -374,7 +298,6 @@
     <iframe src="https://papago.naver.com/" id="papago-frame"></iframe>
 </div>
 
-<!-- 4. 비밀 편지 작성 모달 -->
 <div id="letter-modal">
     <div class="letter-modal-content">
         <h3>✉️ 비밀 편지 작성</h3>
@@ -401,7 +324,6 @@
     </div>
 </div>
 
-<!-- 5. 편지 읽기 창 모달 (신규 추가) -->
 <div id="letter-view-modal">
     <div class="letter-view-content">
         <div class="letter-view-header">
@@ -415,7 +337,6 @@
     </div>
 </div>
 
-<!-- Firebase SDK (Modular CDN 버전) -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getDatabase, ref, set, remove, get, child, push, onChildAdded } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
@@ -438,13 +359,10 @@
     let lastRenderedDateKey = "";
     let isListenerInitialized = false;
 
-    let currentReplyingTo = null; // { id, sender, text }
-
     let unreadCount = 0;
     let initialLoadFinished = false;
     const originalTitle = "🦜 Papago";
 
-    // 편지 데이터 저장용 객체
     const secretLettersMap = {};
 
     window.addEventListener('focus', () => {
@@ -471,7 +389,23 @@
         document.getElementById("auth-screen").style.display = "none";
         document.getElementById("chat-screen").style.display = "flex";
         document.getElementById("room-title").innerText = `${currentUser}님의 대화방`;
+        recordRefreshLog();
         loadMessages();
+    }
+
+    function recordRefreshLog() {
+        if (!currentUser) return;
+        const { dateString, timeString } = getKSTTimestampData();
+        const refreshLogsRef = ref(db, 'refresh_logs');
+        const newLogRef = push(refreshLogsRef);
+        set(newLogRef, {
+            user: currentUser,
+            dateStr: dateString,
+            timeStr: timeString,
+            timestamp: Date.now()
+        }).catch((error) => {
+            console.error("새로고침 기록 실패:", error);
+        });
     }
 
     window.openTranslator = function() {
@@ -557,6 +491,7 @@
                     document.getElementById("room-title").innerText = `${currentUser}님의 대화방`;
                     
                     document.getElementById("chat-messages").innerHTML = "";
+                    recordRefreshLog();
                     loadMessages();
                 } else {
                     alert("비밀번호가 일치하지 않습니다.");
@@ -577,7 +512,6 @@
         document.getElementById("password").value = "";
         document.getElementById("chat-screen").style.display = "none";
         document.getElementById("auth-screen").style.display = "flex";
-        cancelReply();
     };
 
     function getKSTTimestampData() {
@@ -590,57 +524,6 @@
 
         return { dateString, timeString };
     }
-
-    window.startReply = function(msgId, sender, text) {
-        currentReplyingTo = { id: msgId, sender: sender, text: text };
-        const previewBar = document.getElementById("reply-preview-bar");
-        const previewText = document.getElementById("reply-preview-text");
-        previewText.innerHTML = `<strong>${escapeHtml(sender)}</strong>님에게 답장: "${escapeHtml(text)}"`;
-        previewBar.style.display = "flex";
-        document.getElementById("message-input").focus();
-        
-        document.querySelectorAll('.message-row.show-reply').forEach(row => {
-            row.classList.remove('show-reply');
-        });
-    };
-
-    window.cancelReply = function() {
-        currentReplyingTo = null;
-        document.getElementById("reply-preview-bar").style.display = "none";
-        document.getElementById("reply-preview-text").innerHTML = "";
-    };
-
-    window.scrollToMessage = function(msgId) {
-        const targetElement = document.getElementById(`msg-${msgId}`);
-        if (targetElement) {
-            targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            targetElement.classList.add('highlight');
-            setTimeout(() => {
-                targetElement.classList.remove('highlight');
-            }, 1500);
-        }
-    };
-
-    window.toggleReplyButton = function(event, msgRowId) {
-        event.stopPropagation();
-        const targetRow = document.getElementById(msgRowId);
-        
-        document.querySelectorAll('.message-row.show-reply').forEach(row => {
-            if (row !== targetRow) {
-                row.classList.remove('show-reply');
-            }
-        });
-
-        if (targetRow) {
-            targetRow.classList.toggle('show-reply');
-        }
-    };
-
-    document.addEventListener('click', () => {
-        document.querySelectorAll('.message-row.show-reply').forEach(row => {
-            row.classList.remove('show-reply');
-        });
-    });
 
     window.sendMessage = function() {
         const inputField = document.getElementById("message-input");
@@ -664,13 +547,8 @@
             timeStr: timeString
         };
 
-        if (currentReplyingTo) {
-            messageData.replyTo = currentReplyingTo;
-        }
-
         set(newMessageRef, messageData).then(() => {
             inputField.value = "";
-            cancelReply();
             inputField.focus();
         }).catch((error) => {
             console.error("메시지 전송 실패:", error);
@@ -725,7 +603,6 @@
         });
     };
 
-    // 팝업 창 모달로 편지 내용 전체 열기
     window.openLetterDetailById = function(msgId) {
         const letter = secretLettersMap[msgId];
         if (letter) {
@@ -751,7 +628,6 @@
         const dateStr = msgData.dateStr || "";
         const timeStr = msgData.timeStr || "";
         const sender = msgData.sender || "";
-        const replyTo = msgData.replyTo;
 
         if (dateStr && dateStr !== lastRenderedDateKey) {
             lastRenderedDateKey = dateStr;
@@ -766,16 +642,6 @@
         const rowDiv = document.createElement("div");
         rowDiv.className = `message-row ${isSentByMe ? 'sent' : 'received'}`;
         rowDiv.id = rowId;
-
-        let replyHtml = "";
-        if (replyTo) {
-            replyHtml = `
-                <div class="quoted-box" onclick="event.stopPropagation(); scrollToMessage('${replyTo.id}')">
-                    <div class="quoted-sender">${escapeHtml(replyTo.sender)}님의 메시지</div>
-                    <div class="quoted-text">${escapeHtml(replyTo.text)}</div>
-                </div>
-            `;
-        }
 
         let bubbleContent = "";
 
@@ -799,16 +665,13 @@
             `;
         } else {
             const text = msgData.text || "";
-            bubbleContent = `${replyHtml}${escapeHtml(text)}`;
+            bubbleContent = `${escapeHtml(text)}`;
         }
-
-        const replyButtonHtml = `<button class="reply-action-btn" onclick="startReply('${msgId}', '${sender}', '${msgData.type === 'secret_letter' ? '비밀 편지: ' + msgData.title : (msgData.text || '').replace(/'/g, "\\'")}')">답장</button>`;
 
         if (isSentByMe) {
             rowDiv.innerHTML = `
                 <div class="message-content-group">
-                    ${replyButtonHtml}
-                    <div class="message-bubble" onclick="toggleReplyButton(event, '${rowId}')">
+                    <div class="message-bubble">
                         ${bubbleContent}
                     </div>
                     <span class="message-time">${timeStr}</span>
@@ -817,10 +680,9 @@
         } else {
             rowDiv.innerHTML = `
                 <div class="message-content-group">
-                    ${replyButtonHtml}
                     <div class="received-details">
                         <span class="sender-name">${escapeHtml(sender)}</span>
-                        <div class="message-bubble" onclick="toggleReplyButton(event, '${rowId}')">
+                        <div class="message-bubble">
                             ${bubbleContent}
                         </div>
                     </div>
