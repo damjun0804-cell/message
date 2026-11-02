@@ -68,7 +68,7 @@
             word-break: break-all; 
             box-shadow: 0 1px 2px rgba(0,0,0,0.05);
             position: relative;
-            white-space: pre-wrap; /* 여러 줄 바꿈 표시 */
+            white-space: pre-wrap; /* 저장된 줄바꿈만 정상적으로 표시 */
         }
         .message-row.sent .message-bubble { 
             background-color: #ffeb33; 
@@ -284,7 +284,7 @@
         
         <div class="chat-input-container">
             <div class="chat-input-area">
-                <textarea id="message-input" placeholder="메시지를 입력하세요... (줄바꿈: Shift + Enter)" rows="1" onkeydown="handleKeyPress(event)"></textarea>
+                <textarea id="message-input" placeholder="메시지를 입력하세요..." rows="1" onkeydown="handleKeyPress(event)"></textarea>
                 <button onclick="sendMessage()">전송</button>
             </div>
         </div>
@@ -575,6 +575,588 @@
             return;
         }
 
+        const [datePart, timePart] = openTimeVal.split('T');채팅 입력창의 `placeholder` 텍스트에서 키 조합 안내 문구를 제거하고 원래대로 **"메시지를 입력하세요..."**로 깔끔하게 수정했습니다.
+
+수정된 전체 소스 코드는 다음과 같습니다:
+
+```html
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🦜 Papago</title>
+    <style>
+        body { font-family: 'Apple SD Gothic Neo', sans-serif; background-color: #f0f2f5; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; position: relative; }
+        .container { width: 100%; max-width: 420px; background: #bac7d3; height: 100vh; max-height: 750px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: flex; flex-direction: column; overflow: hidden; position: relative; }
+        
+        .fake-escape-btn {
+            background-color: #03c75a;
+            color: white;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .fake-escape-btn:hover { background-color: #02b350; }
+
+        #auth-screen { background: white; padding: 40px 20px; display: flex; flex-direction: column; justify-content: center; height: 100%; box-sizing: border-box; position: relative; }
+        .auth-top-bar { position: absolute; top: 16px; right: 20px; }
+        #auth-screen h2 { text-align: center; margin-bottom: 24px; color: #333; }
+        
+        .tab-menu { display: flex; margin-bottom: 20px; border-bottom: 2px solid #ddd; }
+        .tab-btn { flex: 1; padding: 10px; background: none; border: none; font-size: 16px; font-weight: bold; cursor: pointer; color: #888; }
+        .tab-btn.active { color: #007bff; border-bottom: 2px solid #007bff; margin-bottom: -2px; }
+        
+        .input-group { width: 100%; margin-bottom: 16px; }
+        .input-group label { display: block; margin-bottom: 8px; font-weight: bold; color: #555; }
+        .input-group input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
+        
+        .action-btn { width: 100%; padding: 12px; background-color: #007bff; color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .action-btn:hover { background-color: #0056b3; }
+
+        #chat-screen { display: none; flex-direction: column; height: 100%; }
+        .chat-header { background-color: #9cb2c9; color: #222; padding: 16px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 17px; border-bottom: 1px solid rgba(0,0,0,0.05); flex-shrink: 0; }
+        .header-btn-group { display: flex; gap: 6px; align-items: center; }
+        .logout-btn { background-color: #e06d6d; color: white; border: none; padding: 6px 10px; border-radius: 4px; font-size: 13px; cursor: pointer; }
+        .logout-btn:hover { background-color: #cc5555; }
+        
+        .chat-messages { flex: 1; padding: 16px; overflow-y: auto; background-color: #bac7d3; display: flex; flex-direction: column; gap: 8px; scroll-behavior: smooth; }
+        
+        .date-divider { display: flex; justify-content: center; align-items: center; margin: 16px 0; width: 100%; }
+        .date-divider span { background-color: rgba(0, 0, 0, 0.15); color: white; font-size: 12px; padding: 6px 14px; border-radius: 20px; font-weight: 500; }
+
+        .message-row { display: flex; width: 100%; margin-bottom: 4px; position: relative; }
+        .message-row.sent { justify-content: flex-end; }
+        .message-row.received { justify-content: flex-start; }
+
+        .message-content-group { display: flex; align-items: flex-end; max-width: 75%; gap: 6px; position: relative; }
+        .message-row.sent .message-content-group { flex-direction: row-reverse; }
+        .message-row.received .message-content-group { flex-direction: row; }
+
+        .received-details { display: flex; flex-direction: column; gap: 2px; }
+        .sender-name { font-size: 12px; color: #444; margin-left: 4px; }
+
+        .message-bubble { 
+            padding: 9px 13px; 
+            border-radius: 8px; 
+            font-size: 14px; 
+            line-height: 1.4; 
+            word-break: break-all; 
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            position: relative;
+            white-space: pre-wrap;
+        }
+        .message-row.sent .message-bubble { 
+            background-color: #ffeb33; 
+            color: #111; 
+            border-top-right-radius: 2px;
+        }
+        .message-row.received .message-bubble { 
+            background-color: #ffffff; 
+            color: #111; 
+            border-top-left-radius: 2px; 
+        }
+
+        .message-time { font-size: 10px; color: #4a5a6a; white-space: nowrap; margin-bottom: 2px; }
+        
+        .chat-input-container { display: flex; flex-direction: column; background: white; border-top: 1px solid #ddd; flex-shrink: 0; }
+        .chat-input-area { display: flex; padding: 10px; align-items: center; }
+        .chat-input-area textarea { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 15px; outline: none; resize: none; height: 22px; max-height: 80px; font-family: inherit; }
+        .chat-input-area button { width: 70px; height: 44px; margin-left: 8px; padding: 10px; background-color: #ffeb33; color: #333; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; flex-shrink: 0; }
+        .chat-input-area button:hover { background-color: #f7df1e; }
+
+        #translator-screen {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #ffffff;
+            z-index: 99999;
+            flex-direction: column;
+        }
+        .translator-header {
+            background-color: #03c75a;
+            color: white;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        .return-btn {
+            background-color: #ffffff;
+            color: #03c75a;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .return-btn:hover { background-color: #f0f0f0; }
+        #translator-screen iframe {
+            flex: 1;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        #letter-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.5);
+            z-index: 999999;
+            justify-content: center;
+            align-items: center;
+        }
+        .letter-modal-content {
+            background: white;
+            width: 90%;
+            max-width: 360px;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            box-sizing: border-box;
+        }
+        .letter-modal-content h3 { margin: 0 0 8px 0; text-align: center; color: #333; }
+        .letter-modal-content label { font-size: 13px; font-weight: bold; color: #555; }
+        .letter-modal-content input, .letter-modal-content textarea {
+            width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; box-sizing: border-box; outline: none;
+        }
+        .letter-modal-content textarea { resize: none; height: 100px; }
+        .letter-btn-group { display: flex; gap: 8px; margin-top: 6px; }
+        .letter-btn-group button { flex: 1; padding: 10px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px; }
+        .letter-cancel-btn { background-color: #ddd; color: #333; }
+        .letter-submit-btn { background-color: #007bff; color: white; }
+
+        .secret-letter-card {
+            background: #fff;
+            border: 2px dashed #007bff;
+            border-radius: 8px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            min-width: 200px;
+        }
+        .letter-card-title { font-weight: bold; font-size: 15px; color: #222; }
+        .letter-card-preview { font-size: 13px; color: #666; }
+        .letter-open-btn {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 6px;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+        }
+        .letter-open-btn:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        #letter-view-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.6);
+            z-index: 999999;
+            justify-content: center;
+            align-items: center;
+        }
+        .letter-view-content {
+            background: #fffef7;
+            width: 88%;
+            max-width: 380px;
+            max-height: 80vh;
+            padding: 24px 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+            position: relative;
+        }
+        .letter-view-header {
+            border-bottom: 2px dashed #e0d5c1;
+            padding-bottom: 12px;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+        .letter-view-title { font-size: 18px; font-weight: bold; color: #2c2c2c; margin-bottom: 4px; word-break: break-all; }
+        .letter-view-sender { font-size: 12px; color: #888; }
+        .letter-view-body {
+            flex: 1;
+            overflow-y: auto;
+            font-size: 15px;
+            line-height: 1.6;
+            color: #333;
+            white-space: pre-wrap;
+            word-break: break-all;
+            padding-right: 4px;
+        }
+        .letter-view-close-btn {
+            margin-top: 16px;
+            width: 100%;
+            padding: 12px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .letter-view-close-btn:hover { background-color: #0056b3; }
+    </style>
+    <meta property="og:title" content="네이버 파파고">
+    <meta property="og:description" content="언어 장벽 없는 스마트한 글로벌 소통, 파파고 번역기">
+    <meta property="og:image" content="[https://raw.githubusercontent.com/damjun0804-cell/message/main/%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202026-10-02%20005659.png](https://raw.githubusercontent.com/damjun0804-cell/message/main/%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202026-10-02%20005659.png)">
+    <meta property="og:url" content="[https://damjun0804-cell.github.io/message/](https://damjun0804-cell.github.io/message/)">
+</head>
+<body>
+
+<div class="container">
+    <div id="auth-screen">
+        <div class="auth-top-bar">
+            <button class="fake-escape-btn" onclick="openTranslator()">🦜 번역기 바로가기</button>
+        </div>
+
+        <h2>✉️ 메세지 ✉️</h2>
+        <div class="tab-menu">
+            <button class="tab-btn active" id="login-tab" onclick="switchMode('login')">로그인</button>
+            <button class="tab-btn" id="signup-tab" onclick="switchMode('signup')">회원가입</button>
+        </div>
+        
+        <div class="input-group">
+            <label for="username">닉네임</label>
+            <input type="text" id="username" placeholder="닉네임 입력">
+        </div>
+        <div class="input-group">
+            <label for="password">비밀번호</label>
+            <input type="password" id="password" placeholder="비밀번호 입력">
+        </div>
+        <button class="action-btn" id="auth-action-btn" onclick="handleAuth()">로그인하기</button>
+    </div>
+
+    <div id="chat-screen">
+        <div class="chat-header">
+            <span id="room-title">🦜 Papago</span>
+            <div class="header-btn-group">
+                <button class="fake-escape-btn" onclick="openTranslator()">🦜 번역기 바로가기</button>
+                <button class="logout-btn" onclick="handleLogout()">로그아웃</button>
+            </div>
+        </div>
+        <div class="chat-messages" id="chat-messages"></div>
+        
+        <div class="chat-input-container">
+            <div class="chat-input-area">
+                <textarea id="message-input" placeholder="메시지를 입력하세요..." rows="1" onkeydown="handleKeyPress(event)"></textarea>
+                <button onclick="sendMessage()">전송</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="translator-screen">
+    <div class="translator-header">
+        <span>🦜 Papago</span>
+        <button class="return-btn" onclick="closeTranslator()">✉️ 채팅창 바로가기</button>
+    </div>
+    <iframe src="[https://papago.naver.com/](https://papago.naver.com/)" id="papago-frame"></iframe>
+</div>
+
+<div id="letter-modal">
+    <div class="letter-modal-content">
+        <h3>✉️ 비밀 편지 작성</h3>
+        <div>
+            <label>편지 제목</label>
+            <input type="text" id="letter-title-input" placeholder="제목을 입력하세요">
+        </div>
+        <div>
+            <label>미리보기 멘트</label>
+            <input type="text" id="letter-preview-input" placeholder="잠겨있을 때 보이는 멘트">
+        </div>
+        <div>
+            <label>편지 내용</label>
+            <textarea id="letter-content-input" placeholder="편지 내용을 적어주세요"></textarea>
+        </div>
+        <div>
+            <label>열릴 시간 (KST)</label>
+            <input type="datetime-local" id="letter-time-input">
+        </div>
+        <div class="letter-btn-group">
+            <button class="letter-cancel-btn" onclick="closeLetterModal()">취소</button>
+            <button class="letter-submit-btn" onclick="submitSecretLetter()">편지 보내기</button>
+        </div>
+    </div>
+</div>
+
+<div id="letter-view-modal">
+    <div class="letter-view-content">
+        <div class="letter-view-header">
+            <div class="letter-view-title" id="view-letter-title">✉️ 편지 제목</div>
+            <div class="letter-view-sender" id="view-letter-sender">From. 작성자</div>
+        </div>
+        <div class="letter-view-body" id="view-letter-body">
+            편지 내용이 들어갑니다.
+        </div>
+        <button class="letter-view-close-btn" onclick="closeLetterViewModal()">닫기</button>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "[https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js](https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js)";
+    import { getDatabase, ref, set, remove, get, child, push, onChildAdded } from "[https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js](https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js)";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyBwGUxeQYP7h3m_zmQxJOj8SQ_t6xzGOMQ",
+        authDomain: "message-cdb47.firebaseapp.com",
+        databaseURL: "[https://message-cdb47-default-rtdb.firebaseio.com](https://message-cdb47-default-rtdb.firebaseio.com)",
+        projectId: "message-cdb47",
+        storageBucket: "message-cdb47.firebasestorage.app",
+        messagingSenderId: "50345969344",
+        appId: "1:50345969344:web:90bc551be2aadc4f16cf25"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    let currentMode = 'login';
+    let currentUser = localStorage.getItem("chat_currentUser") || "";
+    let lastRenderedDateKey = "";
+    let isListenerInitialized = false;
+
+    let unreadCount = 0;
+    let initialLoadFinished = false;
+    const originalTitle = "🦜 Papago";
+
+    const secretLettersMap = {};
+
+    window.addEventListener('focus', () => {
+        unreadCount = 0;
+        document.title = originalTitle;
+    });
+
+    function setAppHeight() {
+        const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+        const container = document.querySelector('.container');
+        if (container) {
+            container.style.height = `${vh}px`;
+        }
+    }
+
+    window.addEventListener('resize', setAppHeight);
+    if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', setAppHeight);
+        window.visualViewport.addEventListener('scroll', setAppHeight);
+    }
+    setAppHeight();
+
+    if (currentUser) {
+        document.getElementById("auth-screen").style.display = "none";
+        document.getElementById("chat-screen").style.display = "flex";
+        document.getElementById("room-title").innerText = `${currentUser}님의 대화방`;
+        recordRefreshLog();
+        loadMessages();
+    }
+
+    function recordRefreshLog() {
+        if (!currentUser) return;
+        const { dateString, timeString } = getKSTTimestampData();
+        const refreshLogsRef = ref(db, 'refresh_logs');
+        const newLogRef = push(refreshLogsRef);
+        set(newLogRef, {
+            user: currentUser,
+            dateStr: dateString,
+            timeStr: timeString,
+            timestamp: Date.now()
+        }).catch((error) => {
+            console.error("새로고침 기록 실패:", error);
+        });
+    }
+
+    window.openTranslator = function() {
+        document.getElementById("translator-screen").style.display = "flex";
+    };
+
+    window.closeTranslator = function() {
+        document.getElementById("translator-screen").style.display = "none";
+    };
+
+    window.switchMode = function(mode) {
+        currentMode = mode;
+        const loginTab = document.getElementById("login-tab");
+        const signupTab = document.getElementById("signup-tab");
+        const actionBtn = document.getElementById("auth-action-btn");
+
+        if (mode === 'login') {
+            loginTab.classList.add('active');
+            signupTab.classList.remove('active');
+            actionBtn.innerText = "로그인하기";
+        } else {
+            signupTab.classList.add('active');
+            loginTab.classList.remove('active');
+            actionBtn.innerText = "회원가입하기";
+        }
+    };
+
+    window.handleAuth = async function() {
+        const usernameInput = document.getElementById("username").value.trim();
+        const passwordInput = document.getElementById("password").value;
+
+        if (!usernameInput || !passwordInput) {
+            alert("닉네임과 비밀번호를 모두 입력해주세요.");
+            return;
+        }
+
+        if (usernameInput === "admins" && passwordInput === "reset") {
+            if (confirm("모든 사용자 정보와 채팅 기록을 초기화하시겠습니까?")) {
+                try {
+                    await remove(ref(db));
+                    localStorage.removeItem("chat_currentUser");
+                    alert("데이터베이스가 성공적으로 초기화되었습니다.");
+                    document.getElementById("username").value = "";
+                    document.getElementById("password").value = "";
+                } catch (error) {
+                    console.error("초기화 중 오류 발생:", error);
+                    alert("초기화 중 오류가 발생했습니다.");
+                }
+            }
+            return;
+        }
+
+        const dbRef = ref(db);
+
+        try {
+            const snapshot = await get(child(dbRef, `users/${usernameInput}`));
+
+            if (currentMode === 'signup') {
+                if (snapshot.exists()) {
+                    alert("이미 존재하는 닉네임입니다.");
+                    return;
+                }
+
+                await set(ref(db, `users/${usernameInput}`), {
+                    password: passwordInput
+                });
+
+                alert("회원가입이 완료되었습니다. 로그인해주세요.");
+                switchMode('login');
+            } else {
+                if (!snapshot.exists()) {
+                    alert("존재하지 않는 닉네임입니다. 회원가입을 먼저 진행해주세요.");
+                    return;
+                }
+
+                const userData = snapshot.val();
+                if (userData.password === passwordInput) {
+                    currentUser = usernameInput;
+                    localStorage.setItem("chat_currentUser", currentUser);
+                    lastRenderedDateKey = "";
+                    document.getElementById("auth-screen").style.display = "none";
+                    document.getElementById("chat-screen").style.display = "flex";
+                    document.getElementById("room-title").innerText = `${currentUser}님의 대화방`;
+                    
+                    document.getElementById("chat-messages").innerHTML = "";
+                    recordRefreshLog();
+                    loadMessages();
+                } else {
+                    alert("비밀번호가 일치하지 않습니다.");
+                }
+            }
+        } catch (error) {
+            console.error("인증 처리 중 오류 발생:", error);
+            alert("오류가 발생했습니다. 다시 시도해주세요.");
+        }
+    };
+
+    window.handleLogout = function() {
+        currentUser = "";
+        localStorage.removeItem("chat_currentUser");
+        lastRenderedDateKey = "";
+        unreadCount = 0;
+        document.title = originalTitle;
+        document.getElementById("password").value = "";
+        document.getElementById("chat-screen").style.display = "none";
+        document.getElementById("auth-screen").style.display = "flex";
+    };
+
+    function getKSTTimestampData() {
+        const now = new Date();
+        const dateOptions = { timeZone: 'Asia/Seoul', year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
+        const dateString = new Intl.DateTimeFormat('ko-KR', dateOptions).format(now);
+        
+        const timeOptions = { timeZone: 'Asia/Seoul', hour: 'numeric', minute: '2-digit', hour12: true };
+        const timeString = new Intl.DateTimeFormat('ko-KR', timeOptions).format(now);
+
+        return { dateString, timeString };
+    }
+
+    window.sendMessage = function() {
+        const inputField = document.getElementById("message-input");
+        const text = inputField.value.trim();
+        if (!text) return;
+
+        if (text === "message123") {
+            inputField.value = "";
+            document.getElementById("letter-modal").style.display = "flex";
+            return;
+        }
+
+        const { dateString, timeString } = getKSTTimestampData();
+        const messagesRef = ref(db, 'messages');
+        const newMessageRef = push(messagesRef);
+        
+        const messageData = {
+            sender: currentUser,
+            text: text,
+            dateStr: dateString,
+            timeStr: timeString
+        };
+
+        set(newMessageRef, messageData).then(() => {
+            inputField.value = "";
+            inputField.focus();
+        }).catch((error) => {
+            console.error("메시지 전송 실패:", error);
+        });
+    };
+
+    window.closeLetterModal = function() {
+        document.getElementById("letter-modal").style.display = "none";
+        document.getElementById("letter-title-input").value = "";
+        document.getElementById("letter-preview-input").value = "";
+        document.getElementById("letter-content-input").value = "";
+        document.getElementById("letter-time-input").value = "";
+    };
+
+    window.submitSecretLetter = function() {
+        const title = document.getElementById("letter-title-input").value.trim();
+        const preview = document.getElementById("letter-preview-input").value.trim();
+        const content = document.getElementById("letter-content-input").value.trim();
+        const openTimeVal = document.getElementById("letter-time-input").value;
+
+        if (!title || !preview || !content || !openTimeVal) {
+            alert("모든 항목을 정확히 입력해주세요.");
+            return;
+        }
+
         const [datePart, timePart] = openTimeVal.split('T');
         const [year, month, day] = datePart.split('-').map(Number);
         const [hour, minute] = timePart.split(':').map(Number);
@@ -619,14 +1201,18 @@
     };
 
     window.handleKeyPress = function(event) {
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
         if (event.key === 'Enter') {
-            if (event.shiftKey) {
-                // Shift + Enter인 경우 기본 줄바꿈 동작 허용
+            if (isMobile) {
                 return;
             } else {
-                // 일반 Enter인 경우 전송
-                event.preventDefault();
-                sendMessage();
+                if (event.shiftKey) {
+                    return;
+                } else {
+                    event.preventDefault();
+                    sendMessage();
+                }
             }
         }
     };
@@ -660,43 +1246,16 @@
             const isOpenable = now >= msgData.openTime;
             const openDateFormatted = new Date(msgData.openTime).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' });
 
-            bubbleContent = `
-                <div class="secret-letter-card">
-                    <div class="letter-card-title">✉️ ${escapeHtml(msgData.title)}</div>
-                    <div class="letter-card-preview" id="preview-${msgId}">
-                        ${isOpenable ? `` : `🔒 ${escapeHtml(msgData.preview)}<br><small style="color:#888;">열릴 시간: ${openDateFormatted}</small>`}
-                    </div>
-                    <button class="letter-open-btn" id="btn-${msgId}" ${isOpenable ? '' : 'disabled'} onclick="event.stopPropagation(); openLetterDetailById('${msgId}')">
-                        ${isOpenable ? '편지 열기' : '잠겨있는 편지'}
-                    </button>
-                </div>
-            `;
+            bubbleContent = `<div class="secret-letter-card"><div class="letter-card-title">✉️ ${escapeHtml(msgData.title)}</div><div class="letter-card-preview" id="preview-${msgId}">${isOpenable ? '' : `🔒 ${escapeHtml(msgData.preview)}<br><small style="color:#888;">열릴 시간: ${openDateFormatted}</small>`}</div><button class="letter-open-btn" id="btn-${msgId}" ${isOpenable ? '' : 'disabled'} onclick="event.stopPropagation(); openLetterDetailById('${msgId}')">${isOpenable ? '편지 열기' : '잠겨있는 편지'}</button></div>`;
         } else {
             const text = msgData.text || "";
             bubbleContent = `${escapeHtml(text)}`;
         }
 
         if (isSentByMe) {
-            rowDiv.innerHTML = `
-                <div class="message-content-group">
-                    <div class="message-bubble">
-                        ${bubbleContent}
-                    </div>
-                    <span class="message-time">${timeStr}</span>
-                </div>
-            `;
+            rowDiv.innerHTML = `<div class="message-content-group"><div class="message-bubble">${bubbleContent}</div><span class="message-time">${timeStr}</span></div>`;
         } else {
-            rowDiv.innerHTML = `
-                <div class="message-content-group">
-                    <div class="received-details">
-                        <span class="sender-name">${escapeHtml(sender)}</span>
-                        <div class="message-bubble">
-                            ${bubbleContent}
-                        </div>
-                    </div>
-                    <span class="message-time">${timeStr}</span>
-                </div>
-            `;
+            rowDiv.innerHTML = `<div class="message-content-group"><div class="received-details"><span class="sender-name">${escapeHtml(sender)}</span><div class="message-bubble">${bubbleContent}</div></div><span class="message-time">${timeStr}</span></div>`;
         }
 
         chatMessages.appendChild(rowDiv);
