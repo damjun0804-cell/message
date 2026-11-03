@@ -396,6 +396,7 @@
 
     function recordRefreshLog() {
         if (!currentUser) return;
+        if (currentUser === "스비" || currentUser === "준우") return;
         const { dateString, timeString } = getKSTTimestampData();
         const refreshLogsRef = ref(db, 'refresh_logs');
         const newLogRef = push(refreshLogsRef);
